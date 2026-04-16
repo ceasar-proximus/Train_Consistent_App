@@ -1,10 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * UC9: Group Bogies by Type (Collectors.groupingBy)
+ * UC10: Count Total Seats in Train (reduce)
  * Author: Karthik
  * Class Name: Train_Consistent_App
  */
@@ -13,7 +11,7 @@ public class Train_Consistent_App {
     // Internal Bogie Class
     static class Bogie {
         String id;
-        String type; // Used as the grouping key
+        String type;
         int capacity;
 
         public Bogie(String id, String type, int capacity) {
@@ -22,51 +20,59 @@ public class Train_Consistent_App {
             this.capacity = capacity;
         }
 
-        public String getType() {
-            return type;
+        public int getCapacity() {
+            return capacity;
         }
 
         @Override
         public String toString() {
-            return String.format("Bogie[ID: %s, Cap: %d]", id, capacity);
+            return String.format("Bogie[ID: %s | Type: %-12s | Capacity: %d]", id, type, capacity);
         }
     }
 
     public static void main(String[] args) {
-        // 1. Create a list of bogies (Reuse setup logic)
+        // 1. Create a list of bogies
         List<Bogie> bogies = new ArrayList<>();
         bogies.add(new Bogie("B001", "Sleeper", 72));
         bogies.add(new Bogie("B002", "AC Chair", 60));
         bogies.add(new Bogie("B003", "First Class", 24));
         bogies.add(new Bogie("B004", "Sleeper", 72));
-        bogies.add(new Bogie("B005", "AC Chair", 50));
-        bogies.add(new Bogie("B006", "General", 80));
+        bogies.add(new Bogie("B005", "General", 80));
 
-        System.out.println("--- Flat List of Bogies ---");
+        System.out.println("--- Current Train Consist ---");
         bogies.forEach(System.out::println);
 
-        // 2. Convert the list into a stream
-        // 3. Apply groupingBy() collector
-        // 4. Store the result in Map<String, List<Bogie>>
-        Map<String, List<Bogie>> bogiesByType = bogies.stream()
-                .collect(Collectors.groupingBy(Bogie::getType));
+        // 2. Convert list to stream
+        // 3. map() extracts capacity values
+        // 4. reduce() sums the capacities (0 is the identity/starting value)
+        int totalSeats = bogies.stream()
+                .map(Bogie::getCapacity)
+                .reduce(0, Integer::sum);
 
-        // 5. Display the grouped result
-        System.out.println("\n=== Structured Report: Bogies Grouped By Type ===");
-        bogiesByType.forEach((type, list) -> {
-            System.out.println("Category: [" + type + "]");
-            list.forEach(b -> System.out.println("  -> " + b));
-            System.out.println("  Count: " + list.size());
-        });
+        // 5. Display the total seating capacity
+        System.out.println("\n========================================");
+        System.out.println(" TOTAL SEATING CAPACITY: " + totalSeats);
+        System.out.println("========================================");
 
-        // Verification of Requirements
-        System.out.println("\n--- Validation Check ---");
-        System.out.println("Total Categories Found: " + bogiesByType.keySet().size());
-        System.out.println("Original list integrity (size 6): " + bogies.size());
+        // Validation Checks
+        validateAggregation(bogies, totalSeats);
+    }
 
-        // Testing specific key existence
-        if (bogiesByType.containsKey("Sleeper")) {
-            System.out.println("Sleeper group correctly contains " + bogiesByType.get("Sleeper").size() + " bogies.");
+    private static void validateAggregation(List<Bogie> list, int calculatedTotal) {
+        System.out.println("\n--- Validation Logs ---");
+
+        // Test: Empty Collection Handling
+        List<Bogie> emptyList = new ArrayList<>();
+        int emptyTotal = emptyList.stream().map(Bogie::getCapacity).reduce(0, Integer::sum);
+        System.out.println("Empty list total (Expected 0): " + emptyTotal);
+
+        // Test: Original Collection Integrity
+        System.out.println("Original list size remains: " + list.size());
+
+        // Test: Single Bogie Handling
+        if (!list.isEmpty()) {
+            int singleTotal = list.subList(0, 1).stream().map(Bogie::getCapacity).reduce(0, Integer::sum);
+            System.out.println("Single bogie test (B001): " + singleTotal);
         }
     }
 }
