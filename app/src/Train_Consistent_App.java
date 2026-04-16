@@ -1,18 +1,19 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * UC8: Filter Passenger Bogies Using Streams
+ * UC9: Group Bogies by Type (Collectors.groupingBy)
  * Author: Karthik
  * Class Name: Train_Consistent_App
  */
 public class Train_Consistent_App {
 
-    // Internal Bogie Class representing the model
+    // Internal Bogie Class
     static class Bogie {
         String id;
-        String type;
+        String type; // Used as the grouping key
         int capacity;
 
         public Bogie(String id, String type, int capacity) {
@@ -21,51 +22,51 @@ public class Train_Consistent_App {
             this.capacity = capacity;
         }
 
+        public String getType() {
+            return type;
+        }
+
         @Override
         public String toString() {
-            return String.format("Bogie[ID: %-5s | Type: %-12s | Capacity: %d]", id, type, capacity);
+            return String.format("Bogie[ID: %s, Cap: %d]", id, capacity);
         }
     }
 
     public static void main(String[] args) {
-        // 1. Create a list of bogies (Data setup from UC7)
+        // 1. Create a list of bogies (Reuse setup logic)
         List<Bogie> bogies = new ArrayList<>();
         bogies.add(new Bogie("B001", "Sleeper", 72));
         bogies.add(new Bogie("B002", "AC Chair", 60));
         bogies.add(new Bogie("B003", "First Class", 24));
         bogies.add(new Bogie("B004", "Sleeper", 72));
-        bogies.add(new Bogie("B005", "General", 80));
-        bogies.add(new Bogie("B006", "AC Chair", 50));
+        bogies.add(new Bogie("B005", "AC Chair", 50));
+        bogies.add(new Bogie("B006", "General", 80));
 
-        System.out.println("=== Full Train Consist (Original List) ===");
+        System.out.println("--- Flat List of Bogies ---");
         bogies.forEach(System.out::println);
-        System.out.println("Total Bogies: " + bogies.size());
 
         // 2. Convert the list into a stream
-        // 3. Apply filter condition (capacity > 60)
-        // 4. Collect matching bogies into a new list
-        // Note: Using .collect(Collectors.toList()) for compatibility with older Java 8+
-        List<Bogie> highCapacityBogies = bogies.stream()
-                .filter(b -> b.capacity > 60)
-                .collect(Collectors.toList());
+        // 3. Apply groupingBy() collector
+        // 4. Store the result in Map<String, List<Bogie>>
+        Map<String, List<Bogie>> bogiesByType = bogies.stream()
+                .collect(Collectors.groupingBy(Bogie::getType));
 
-        // 5. Display the filtered bogies
-        System.out.println("\n=== Filtered Results: High Capacity Bogies (Capacity > 60) ===");
-        if (highCapacityBogies.isEmpty()) {
-            System.out.println("No matching bogies found.");
-        } else {
-            highCapacityBogies.forEach(System.out::println);
-        }
+        // 5. Display the grouped result
+        System.out.println("\n=== Structured Report: Bogies Grouped By Type ===");
+        bogiesByType.forEach((type, list) -> {
+            System.out.println("Category: [" + type + "]");
+            list.forEach(b -> System.out.println("  -> " + b));
+            System.out.println("  Count: " + list.size());
+        });
 
         // Verification of Requirements
-        System.out.println("\n--- Integrity Check ---");
-        System.out.println("Original list size (should be 6): " + bogies.size());
-        System.out.println("Filtered list size: " + highCapacityBogies.size());
+        System.out.println("\n--- Validation Check ---");
+        System.out.println("Total Categories Found: " + bogiesByType.keySet().size());
+        System.out.println("Original list integrity (size 6): " + bogies.size());
 
-        // Example of "No Matching Bogies" scenario
-        long countAbove100 = bogies.stream()
-                .filter(b -> b.capacity > 100)
-                .count();
-        System.out.println("Bogies with capacity > 100: " + countAbove100);
+        // Testing specific key existence
+        if (bogiesByType.containsKey("Sleeper")) {
+            System.out.println("Sleeper group correctly contains " + bogiesByType.get("Sleeper").size() + " bogies.");
+        }
     }
 }
